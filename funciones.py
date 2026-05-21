@@ -229,16 +229,23 @@ def agregar_ruido_blanco(senal, amplitud):
 
 def truncar_fir(h, M):
     """
-    Trunca la respuesta al impulso de un filtro FIR a M coeficientes.
-    
+    Trunca un filtro FIR conservando M coeficientes
+    centrados respecto del impulso original.
+
     Parámetros:
         h : respuesta al impulso original
-        M : cantidad de coeficientes a conservar
-    
+        M : cantidad de coeficientes
+
     Retorna:
-        h_truncado : respuesta al impulso truncada
+        h_truncado
     """
-    return h[:M]
+
+    N = len(h)
+
+    inicio = (N - M) // 2
+    fin = inicio + M
+
+    return h[inicio:fin]
 
 # -----------------------------------------------------------------------------
 # 6. CARGAR ARCHIVOS

@@ -146,17 +146,18 @@ def filtro_peine(b0, b1, b2):
     return np.array([b0, b1, b2])
 
 
-def filtro_fir(coeficientes):
+def cargar_filtro_fir(ruta_archivo):
     """
-    Genera la respuesta al impulso de un filtro FIR dado sus coeficientes.
+    Carga coeficientes desde archivo .npy y devuelve el filtro FIR.
     
     Parámetros:
-        coeficientes : array con los coeficientes h[n]
+        ruta_archivo : string con la ruta al archivo .npy
     
     Retorna:
-        h : respuesta al impulso
+        h : respuesta al impulso (array)
     """
-    return np.array(coeficientes)
+    coeficientes = np.load(ruta_archivo)
+    return coeficientes
 
 
 # -----------------------------------------------------------------------------

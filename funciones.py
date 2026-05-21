@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.io import wavfile
 
 # =============================================================================
 # PARTE 1 - HERRAMIENTAS DE ANÁLISIS
@@ -146,20 +147,6 @@ def filtro_peine(b0, b1, b2):
     return np.array([b0, b1, b2])
 
 
-def cargar_filtro_fir(ruta_archivo):
-    """
-    Carga coeficientes desde archivo .npy y devuelve el filtro FIR.
-    
-    Parámetros:
-        ruta_archivo : string con la ruta al archivo .npy
-    
-    Retorna:
-        h : respuesta al impulso (array)
-    """
-    coeficientes = np.load(ruta_archivo)
-    return coeficientes
-
-
 # -----------------------------------------------------------------------------
 # 4. FILTRADO DE SEÑALES
 # -----------------------------------------------------------------------------
@@ -252,3 +239,47 @@ def truncar_fir(h, M):
         h_truncado : respuesta al impulso truncada
     """
     return h[:M]
+
+# -----------------------------------------------------------------------------
+# 6. CARGAR ARCHIVOS
+# -----------------------------------------------------------------------------
+
+def cargar_filtro_fir(ruta_archivo):
+    """
+    Carga coeficientes desde archivo .npy y devuelve el filtro FIR.
+    
+    Parámetros:
+        ruta_archivo : string con la ruta al archivo .npy
+    
+    Retorna:
+        h : respuesta al impulso (array)
+    """
+    coeficientes = np.load(ruta_archivo)
+    return coeficientes
+
+
+def cargar_wav(ruta_archivo, normalizar=True):
+    """
+    Carga un archivo WAV y opcionalmente normaliza a float [-1, 1].
+    
+    Parámetros:
+        ruta_archivo : string con el nombre del archivo .wav
+        normalizar   : bool, si True convierte a float32 en rango [-1, 1]
+    
+    Retorna:
+        fs    : frecuencia de muestreo (Hz)
+        datos : array con la señal
+    """
+    from scipy.io import wavfile
+    
+    fs, datos = wavfile.read(ruta_archivo)
+    
+    if normalizar:
+        # Usar el valor máximo del tipo de dato
+        tipo = datos.dtype
+        if np.issubdtype(tipo, np.integer):
+            # Obtener el máximo valor para ese tipo entero
+            max_valor = np.iinfo(tipo).max
+            datos = datos.astype(np.float32) / max_valor
+    
+    return fs, datos

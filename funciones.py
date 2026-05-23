@@ -7,36 +7,39 @@ from scipy.io import wavfile
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# 1. GRAFICACIÓN
+# 1. GRÁFICO
 # -----------------------------------------------------------------------------
 
-def graficar_senal(x, fs=1, titulo="Señal temporal", xlabel="Tiempo [s]"):
+def graficar_senales(x, fs=1, titulo="Señal temporal", xlabel="Tiempo [s]", xlim=None):
     """
     Grafica una o varias señales en el tiempo.
-    
+
     Parámetros:
         x   : array o lista de arrays con las señales
         fs  : frecuencia de muestreo (Hz)
         titulo: título del gráfico
+        xlim  : tupla (min, max) para limitar el eje X, ej: (0, 0.5)
     """
     fig, ax = plt.subplots(figsize=(10, 4))
-    
+
     if isinstance(x, np.ndarray) and x.ndim == 1:
         x = [x]
-    
+
     for senal in x:
         t = np.arange(len(senal)) / fs
         ax.plot(t, senal)
-    
+
     ax.set_title(titulo)
     ax.set_xlabel(xlabel)
     ax.set_ylabel("Amplitud")
     ax.grid(True)
+    if xlim is not None:
+        ax.set_xlim(xlim)
     plt.tight_layout()
     plt.show()
 
 
-def graficar_espectro(x, fs=1, titulo="Espectro de Fourier"):
+def graficar_espectros(x, fs=1, titulo="Respuesta en Frecuencia"):
     """
     Grafica el módulo del espectro de Fourier de una o varias señales.
     

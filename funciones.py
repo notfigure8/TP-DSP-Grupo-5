@@ -1,7 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.io import wavfile
-import soundfile
+import scipy.signal as signal
+import soundfile as sf
 
 # =============================================================================
 # PARTE 1 - HERRAMIENTAS DE ANÁLISIS
@@ -326,8 +327,38 @@ def agregar_ruido_blanco(senal, amplitud):
         senal con ruido agregado
     """
     ruido = amplitud * np.random.randn(len(senal))
-    return senal + ruido
+    return senal + ruido, ruido
 
+def generar_melodia(notas, duraciones, fs, amplitudes=None):
+    """
+    Genera una melodía con notas que se tocan una tras otra.
+    
+    Parámetros:
+        notas      : lista de frecuencias [Hz]
+        duraciones : lista de duraciones para cada nota [s]
+        fs         : frecuencia de muestreo [Hz]
+        amplitudes : lista de amplitudes (opcional, default 1.0)
+    
+    Retorna:
+        senal : array con la melodía completa
+    """
+    if amplitudes is None:
+        amplitudes = [1.0] * len(notas)
+    
+    senal = []
+    for freq, dur, amp in zip(notas, duraciones, amplitudes):
+        t = np.arange(0, dur, 1/fs)
+        nota = amp * np.sin(2 * np.pi * freq * t)
+        
+        # Pequeño fade al inicio y final de cada nota (evita clics)
+        fade_samples = int(0.01 * fs)
+        if len(nota) > 2 * fade_samples:
+            nota[:fade_samples] *= np.linspace(0, 1, fade_samples)
+            nota[-fade_samples:] *= np.linspace(1, 0, fade_samples)
+        
+        senal.extend(nota)
+    
+    return np.array(senal)
 
 # -----------------------------------------------------------------------------
 # 6. TRUNCADO DE FILTRO FIR
@@ -352,7 +383,7 @@ def truncar_fir(h, M):
 
 
 # -----------------------------------------------------------------------------
-# 7. CARGAR ARCHIVOS
+# 7. CARGAR ARCHIVOS Y GENERAR
 # -----------------------------------------------------------------------------
 
 def cargar_filtro_fir(ruta_archivo):
@@ -392,3 +423,101 @@ def cargar_wav(ruta_archivo, normalizar=True):
             datos = datos.astype(np.float32) / max_valor
 
     return fs, datos
+
+def generate_wav(señal, titulo, fs):
+
+    señal = np.array(señal, dtype=np.float64)
+
+    # evitar clipping solamente
+    señal = np.clip(señal, -1, 1)
+
+    sf.write(titulo, señal, fs)
+# -----------------------------------------------------------------------------
+# 8. CÁLCULO DE DENSIDADES ESPECTRALES Y COHERENCIA
+# -----------------------------------------------------------------------------
+
+def analizar_coherencia_sistema(x, y, fs, nperseg=1024):
+    """
+    Calcula las densidades espectrales y la coherencia cuadrática entre 
+    una señal de entrada (x) y salida (y) usando el método de Welch.
+
+    Parámetros:
+        x       : señal de entrada x[n]
+        y       : señal de salida y[n]
+        fs      : frecuencia de muestreo [Hz]
+        nperseg : tamaño de la ventana para el método de Welch (default 1024)
+
+    Retorna:
+        freqs      : array de frecuencias correspondientes [Hz]
+        Gxx        : Densidad espectral de potencia de x
+        Gyy        : Densidad espectral de potencia de y
+        Gxy        : Densidad espectral de potencia cruzada
+        coherencia : Coherencia cuadrática γ²(ω)
+    """
+    # 1. Auto-espectros (Gxx y Gyy)
+    # Por defecto window='hann' y noverlap=nperseg//2
+    freqs, Gxx = signal.welch(x, fs=fs, nperseg=nperseg)
+    _, Gyy = signal.welch(y, fs=fs, nperseg=nperseg)
+    
+    # 2. Espectro Cruzado (Gxy)
+    _, Gxy = signal.csd(x, y, fs=fs, nperseg=nperseg)
+    
+    # 3. Coherencia Cuadrática (Usando la fórmula de la cátedra)
+    # np.real() es solo por seguridad, la fórmula ya asegura un resultado real
+    coherencia = np.real((np.abs(Gxy)**2) / (Gxx * Gyy))
+    
+    # Alternativa directa (hace exactamente el mismo cálculo interno):
+    # freqs, coherencia = signal.coherence(x, y, fs=fs, nperseg=nperseg)
+
+    return freqs, Gxx, Gyy, Gxy, coherencia
+
+
+def graficar_identificacion_sistema(x, y, fs, nperseg=1024, titulo="Análisis del Sistema"):
+    """
+    Calcula y grafica la Respuesta en Frecuencia empírica H(w) y 
+    la Coherencia cuadrática de un sistema desconocido.
+
+    Parámetros:
+        x       : señal de entrada x[n]
+        y       : señal de salida y[n]
+        fs      : frecuencia de muestreo [Hz]
+        nperseg : tamaño de la ventana de Welch
+        titulo  : título general del gráfico
+    """
+    # Obtener densidades
+    freqs, Gxx, Gyy, Gxy, coherencia = analizar_coherencia_sistema(x, y, fs, nperseg)
+    
+    # Estimador H1 de la respuesta en frecuencia (mitiga ruido a la salida)
+    # Evitar división por cero
+    H = np.zeros_like(Gxy, dtype=complex)
+    mascara = Gxx > 1e-15
+    H[mascara] = Gxy[mascara] / Gxx[mascara]
+    
+    # Preparar el gráfico
+    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 10), sharex=True)
+    fig.suptitle(titulo)
+    
+    # Subplot 1: Magnitud en dB
+    H_mag_db = 20 * np.log10(np.abs(H) + 1e-10) # 1e-10 evita log(0)
+    ax1.plot(freqs, H_mag_db, color='blue')
+    ax1.set_title("Módulo de H(ω)")
+    ax1.set_ylabel("Magnitud [dB]")
+    ax1.grid(True)
+    
+    # Subplot 2: Fase
+    H_fase = np.angle(H)
+    ax2.plot(freqs, H_fase, color='orange')
+    ax2.set_title("Fase de H(ω)")
+    ax2.set_ylabel("Fase [rad]")
+    ax2.grid(True)
+    
+    # Subplot 3: Coherencia
+    ax3.plot(freqs, coherencia, color='green')
+    ax3.set_title(r"Coherencia Cuadrática $\gamma_{xy}^2(\omega)$")
+    ax3.set_xlabel("Frecuencia [Hz]")
+    ax3.set_ylabel("Coherencia [0 - 1]")
+    ax3.set_ylim(-0.05, 1.05)
+    ax3.grid(True)
+    
+    plt.tight_layout()
+    plt.show()

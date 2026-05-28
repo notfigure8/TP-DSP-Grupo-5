@@ -12,7 +12,7 @@ import soundfile as sf
 # 1. GRÁFICO
 # -----------------------------------------------------------------------------
 
-def graficar_senales(x, fs=1, titulo=None, xlabel="Tiempo [s]", xlim=None, subplots=False, stem=False, ncols=1, titles=None):
+def graficar_senales(x, fs=1, titulo=None, xlabel="Tiempo [s]", xlim=None, ylim=None, subplots=False, stem=False, ncols=1, titles=None):
     """
     Grafica una o varias señales en el tiempo.
 
@@ -21,6 +21,7 @@ def graficar_senales(x, fs=1, titulo=None, xlabel="Tiempo [s]", xlim=None, subpl
         fs       : frecuencia de muestreo (Hz)
         titulo   : título del gráfico
         xlim     : tupla (min, max) para limitar el eje X, ej: (0, 0.5)
+        ylim     : tupla (min, max) para limitar el eje Y
         subplots : si True, cada señal en su propio subplot
         stem     : si True, usa stem en lugar de plot (para señales discretas)
         ncols    : número de columnas cuando subplots=True (default 1)
@@ -52,6 +53,8 @@ def graficar_senales(x, fs=1, titulo=None, xlabel="Tiempo [s]", xlim=None, subpl
             axes[i].grid(True)
             if xlim is not None:
                 axes[i].set_xlim(xlim)
+            if ylim is not None:
+                axes[i].set_ylim(ylim)
         for j in range(n, len(axes)):
             axes[j].set_visible(False)
     else:
@@ -66,6 +69,8 @@ def graficar_senales(x, fs=1, titulo=None, xlabel="Tiempo [s]", xlim=None, subpl
         ax.grid(True)
         if xlim is not None:
             ax.set_xlim(xlim)
+        if ylim is not None:
+            ax.set_ylim(ylim)
         if n >= 2:
             ax.legend(loc="best")
 
@@ -73,7 +78,7 @@ def graficar_senales(x, fs=1, titulo=None, xlabel="Tiempo [s]", xlim=None, subpl
     plt.show()
 
 
-def graficar_espectros(x, fs=1, titulo="Respuesta en Frecuencia", xlim=None, subplots=False, titles=None):
+def graficar_espectros(x, fs=1, titulo="Respuesta en Frecuencia", xlim=None, ylim=None, subplots=False, titles=None):
     """
     Grafica el módulo del espectro de Fourier de una o varias señales.
 
@@ -81,6 +86,7 @@ def graficar_espectros(x, fs=1, titulo="Respuesta en Frecuencia", xlim=None, sub
         x        : array o lista de arrays con las señales
         fs       : frecuencia de muestreo (Hz)
         xlim     : tupla (min, max) para limitar el eje X, ej: (0, 1000)
+        ylim     : tupla (min, max) para limitar el eje Y
         subplots : si True, cada señal en su propio subplot
         titles   : lista de strings con el título de cada subplot (opcional)
     """
@@ -109,6 +115,8 @@ def graficar_espectros(x, fs=1, titulo="Respuesta en Frecuencia", xlim=None, sub
             ax.grid(True)
             if xlim is not None:
                 ax.set_xlim(xlim)
+            if ylim is not None:
+                ax.set_ylim(ylim)
         axes[-1].set_xlabel("Frecuencia [Hz]")
     else:
         fig, ax = plt.subplots(figsize=(10, 4))
@@ -121,6 +129,8 @@ def graficar_espectros(x, fs=1, titulo="Respuesta en Frecuencia", xlim=None, sub
         ax.grid(True)
         if xlim is not None:
             ax.set_xlim(xlim)
+        if ylim is not None:
+            ax.set_ylim(ylim)
         if n >= 2:
             ax.legend(loc="best")
 
@@ -154,7 +164,7 @@ def calcular_H(x, y):
     return H, freqs
 
 
-def graficar_H(H, freqs, titulo="Respuesta en frecuencia", xlim=None, subplots=False, titles=None):
+def graficar_H(H, freqs, titulo="Respuesta en frecuencia", xlim=None, ylim=None, subplots=False, titles=None):
     """
     Grafica módulo y fase de H(ω).
 
@@ -162,6 +172,7 @@ def graficar_H(H, freqs, titulo="Respuesta en frecuencia", xlim=None, subplots=F
         H        : array complejo o lista de arrays con la respuesta en frecuencia
         freqs    : array o lista de arrays con las frecuencias correspondientes
         xlim     : tupla (min, max) para limitar el eje X en ambos subplots
+        ylim     : tupla (min, max) para limitar el eje Y del módulo
         subplots : si True, cada H en su propia fila de subplots (módulo | fase)
         titles   : lista de strings con el título de cada fila de subplots (opcional)
     """
@@ -184,6 +195,8 @@ def graficar_H(H, freqs, titulo="Respuesta en frecuencia", xlim=None, subplots=F
             axes[i, 0].grid(True)
             if xlim is not None:
                 axes[i, 0].set_xlim(xlim)
+            if ylim is not None:
+                axes[i, 0].set_ylim(ylim)
 
             axes[i, 1].plot(fi[:mitad], np.angle(Hi[:mitad]))
             axes[i, 1].set_title(f"{row_title} - Fase")
@@ -206,6 +219,8 @@ def graficar_H(H, freqs, titulo="Respuesta en frecuencia", xlim=None, subplots=F
         ax1.grid(True)
         if xlim is not None:
             ax1.set_xlim(xlim)
+        if ylim is not None:
+            ax1.set_ylim(ylim)
         if n >= 2:
             ax1.legend(loc="best")
 
@@ -324,7 +339,7 @@ def agregar_ruido_blanco(senal, amplitud):
         amplitud : amplitud del ruido
 
     Retorna:
-        senal con ruido agregado
+        senal con ruido agregado, ruido
     """
     ruido = amplitud * np.random.randn(len(senal))
     return senal + ruido, ruido
@@ -332,32 +347,32 @@ def agregar_ruido_blanco(senal, amplitud):
 def generar_melodia(notas, duraciones, fs, amplitudes=None):
     """
     Genera una melodía con notas que se tocan una tras otra.
-    
+
     Parámetros:
         notas      : lista de frecuencias [Hz]
         duraciones : lista de duraciones para cada nota [s]
         fs         : frecuencia de muestreo [Hz]
         amplitudes : lista de amplitudes (opcional, default 1.0)
-    
+
     Retorna:
         senal : array con la melodía completa
     """
     if amplitudes is None:
         amplitudes = [1.0] * len(notas)
-    
+
     senal = []
     for freq, dur, amp in zip(notas, duraciones, amplitudes):
         t = np.arange(0, dur, 1/fs)
         nota = amp * np.sin(2 * np.pi * freq * t)
-        
+
         # Pequeño fade al inicio y final de cada nota (evita clics)
         fade_samples = int(0.01 * fs)
         if len(nota) > 2 * fade_samples:
             nota[:fade_samples] *= np.linspace(0, 1, fade_samples)
             nota[-fade_samples:] *= np.linspace(1, 0, fade_samples)
-        
+
         senal.extend(nota)
-    
+
     return np.array(senal)
 
 # -----------------------------------------------------------------------------
@@ -438,7 +453,7 @@ def generate_wav(señal, titulo, fs):
 
 def analizar_coherencia_sistema(x, y, fs, nperseg=1024):
     """
-    Calcula las densidades espectrales y la coherencia cuadrática entre 
+    Calcula las densidades espectrales y la coherencia cuadrática entre
     una señal de entrada (x) y salida (y) usando el método de Welch.
 
     Parámetros:
@@ -458,14 +473,14 @@ def analizar_coherencia_sistema(x, y, fs, nperseg=1024):
     # Por defecto window='hann' y noverlap=nperseg//2
     freqs, Gxx = signal.welch(x, fs=fs, nperseg=nperseg)
     _, Gyy = signal.welch(y, fs=fs, nperseg=nperseg)
-    
+
     # 2. Espectro Cruzado (Gxy)
     _, Gxy = signal.csd(x, y, fs=fs, nperseg=nperseg)
-    
+
     # 3. Coherencia Cuadrática (Usando la fórmula de la cátedra)
     # np.real() es solo por seguridad, la fórmula ya asegura un resultado real
     coherencia = np.real((np.abs(Gxy)**2) / (Gxx * Gyy))
-    
+
     # Alternativa directa (hace exactamente el mismo cálculo interno):
     # freqs, coherencia = signal.coherence(x, y, fs=fs, nperseg=nperseg)
 
@@ -474,7 +489,7 @@ def analizar_coherencia_sistema(x, y, fs, nperseg=1024):
 
 def graficar_identificacion_sistema(x, y, fs, nperseg=1024, titulo="Análisis del Sistema"):
     """
-    Calcula y grafica la Respuesta en Frecuencia empírica H(w) y 
+    Calcula y grafica la Respuesta en Frecuencia empírica H(w) y
     la Coherencia cuadrática de un sistema desconocido.
 
     Parámetros:
@@ -486,31 +501,31 @@ def graficar_identificacion_sistema(x, y, fs, nperseg=1024, titulo="Análisis de
     """
     # Obtener densidades
     freqs, Gxx, Gyy, Gxy, coherencia = analizar_coherencia_sistema(x, y, fs, nperseg)
-    
+
     # Estimador H1 de la respuesta en frecuencia (mitiga ruido a la salida)
     # Evitar división por cero
     H = np.zeros_like(Gxy, dtype=complex)
     mascara = Gxx > 1e-15
     H[mascara] = Gxy[mascara] / Gxx[mascara]
-    
+
     # Preparar el gráfico
     fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 10), sharex=True)
     fig.suptitle(titulo)
-    
+
     # Subplot 1: Magnitud en dB
     H_mag_db = 20 * np.log10(np.abs(H) + 1e-10) # 1e-10 evita log(0)
     ax1.plot(freqs, H_mag_db, color='blue')
     ax1.set_title("Módulo de H(ω)")
     ax1.set_ylabel("Magnitud [dB]")
     ax1.grid(True)
-    
+
     # Subplot 2: Fase
     H_fase = np.angle(H)
     ax2.plot(freqs, H_fase, color='orange')
     ax2.set_title("Fase de H(ω)")
     ax2.set_ylabel("Fase [rad]")
     ax2.grid(True)
-    
+
     # Subplot 3: Coherencia
     ax3.plot(freqs, coherencia, color='green')
     ax3.set_title(r"Coherencia Cuadrática $\gamma_{xy}^2(\omega)$")
@@ -518,6 +533,6 @@ def graficar_identificacion_sistema(x, y, fs, nperseg=1024, titulo="Análisis de
     ax3.set_ylabel("Coherencia [0 - 1]")
     ax3.set_ylim(-0.05, 1.05)
     ax3.grid(True)
-    
+
     plt.tight_layout()
     plt.show()

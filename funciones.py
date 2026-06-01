@@ -81,7 +81,6 @@ def graficar_senales(x, fs=1, titulo=None, xlabel="Tiempo [s]", xlim=None, ylim=
 def graficar_espectros(x, fs=1, titulo="Respuesta en Frecuencia", xlim=None, ylim=None, subplots=False, titles=None):
     """
     Grafica el módulo del espectro de Fourier de una o varias señales.
-
     Parámetros:
         x        : array o lista de arrays con las señales
         fs       : frecuencia de muestreo (Hz)
@@ -92,7 +91,6 @@ def graficar_espectros(x, fs=1, titulo="Respuesta en Frecuencia", xlim=None, yli
     """
     if isinstance(x, np.ndarray) and x.ndim == 1:
         x = [x]
-
     n = len(x)
     espectros = []
     freqs_list = []
@@ -103,7 +101,6 @@ def graficar_espectros(x, fs=1, titulo="Respuesta en Frecuencia", xlim=None, yli
         mitad = N // 2
         espectros.append(np.abs(X[:mitad]) / (N / 2))
         freqs_list.append(freqs[:mitad])
-
     if subplots and n >= 2:
         fig, axes = plt.subplots(n, 1, figsize=(10, 3 * n), sharex=True)
         fig.suptitle(titulo)
@@ -133,10 +130,8 @@ def graficar_espectros(x, fs=1, titulo="Respuesta en Frecuencia", xlim=None, yli
             ax.set_ylim(ylim)
         if n >= 2:
             ax.legend(loc="best")
-
     plt.tight_layout()
     plt.show()
-
 
 # -----------------------------------------------------------------------------
 # 2. RESPUESTA EN FRECUENCIA DEL SISTEMA

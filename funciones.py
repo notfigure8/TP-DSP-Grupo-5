@@ -78,7 +78,7 @@ def graficar_senales(x, fs=1, titulo=None, xlabel="Tiempo [s]", xlim=None, ylim=
     plt.show()
 
 
-def graficar_espectros(x, fs=1, titulo="Respuesta en Frecuencia", xlim=None, ylim=None, subplots=False, titles=None):
+def graficar_espectros(x, fs=1, titulo="Respuesta en Frecuencia", xlim=None, ylim=None, subplots=False, titles=None, labels=None):
     """
     Grafica el módulo del espectro de Fourier de una o varias señales.
     Parámetros:
@@ -88,6 +88,7 @@ def graficar_espectros(x, fs=1, titulo="Respuesta en Frecuencia", xlim=None, yli
         ylim     : tupla (min, max) para limitar el eje Y
         subplots : si True, cada señal en su propio subplot
         titles   : lista de strings con el título de cada subplot (opcional)
+        labels   : lista de strings con las etiquetas de la leyenda (opcional)
     """
     if isinstance(x, np.ndarray) and x.ndim == 1:
         x = [x]
@@ -118,7 +119,12 @@ def graficar_espectros(x, fs=1, titulo="Respuesta en Frecuencia", xlim=None, yli
     else:
         fig, ax = plt.subplots(figsize=(10, 4))
         for i, (esp, freqs) in enumerate(zip(espectros, freqs_list)):
-            label = f"Señal {i + 1}" if n >= 2 else None
+            if labels is not None and i < len(labels):
+                label = labels[i]
+            elif n >= 2:
+                label = f"Señal {i + 1}"
+            else:
+                label = None
             ax.plot(freqs, esp, label=label)
         ax.set_title(titulo)
         ax.set_xlabel("Frecuencia [Hz]")

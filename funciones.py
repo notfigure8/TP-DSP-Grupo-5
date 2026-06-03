@@ -165,7 +165,7 @@ def calcular_H(x, y):
     return H, freqs
 
 
-def graficar_H(H, freqs, titulo="Respuesta en frecuencia", xlim=None, ylim=None, subplots=False, titles=None):
+def graficar_H(H, freqs, titulo="Respuesta en frecuencia", xlim=None, ylim=None, subplots=False, titles=None, labels=None):
     """
     Grafica módulo y fase de H(ω).
 
@@ -176,6 +176,7 @@ def graficar_H(H, freqs, titulo="Respuesta en frecuencia", xlim=None, ylim=None,
         ylim     : tupla (min, max) para limitar el eje Y del módulo
         subplots : si True, cada H en su propia fila de subplots (módulo | fase)
         titles   : lista de strings con el título de cada fila de subplots (opcional)
+        labels   : lista de strings con las etiquetas de la leyenda (opcional)
     """
     if isinstance(H, np.ndarray) and H.ndim == 1:
         H = [H]
@@ -210,7 +211,12 @@ def graficar_H(H, freqs, titulo="Respuesta en frecuencia", xlim=None, ylim=None,
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 6))
         for i, (Hi, fi) in enumerate(zip(H, freqs)):
             mitad = len(fi) // 2
-            label = f"H {i + 1}" if n >= 2 else None
+            if labels is not None and i < len(labels):
+                label = labels[i]
+            elif n >= 2:
+                label = f"H {i + 1}"
+            else:
+                label = None
             ax1.plot(fi[:mitad], np.abs(Hi[:mitad]), label=label)
             ax2.plot(fi[:mitad], np.angle(Hi[:mitad]), label=label)
 

@@ -8,15 +8,14 @@
 
 ## Estructura del proyecto
 - `funciones.py`: funciones implementadas
-- `notebook.ipynb`: análisis y explicaciones
-- `datos/`: archivos de datos y señales
-- `imagenes/`: gráficos exportados
+- `Presentacion_grupo_5.ipynb`: análisis y explicaciones
 
 ## Dependencias
 - numpy
 - scipy
 - matplotlib
 - jupyter
+- soundfile
 
 ## Cómo correr el proyecto
 1. Clonar el repositorio: `git clone git@github.com:notfigure8/TP-DSP-Grupo-5.git`

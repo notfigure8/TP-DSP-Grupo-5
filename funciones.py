@@ -543,3 +543,26 @@ def graficar_identificacion_sistema(x, y, fs, nperseg=1024, titulo="Análisis de
 
     plt.tight_layout()
     plt.show()
+
+
+def graficar_coherencia(freqs, coherencia, titulo="Coherencia Cuadrática", xlim=None):
+    """
+    Grafica la coherencia cuadrática γ²(ω).
+
+    Parámetros:
+        freqs      : array de frecuencias [Hz]
+        coherencia : array con la coherencia cuadrática γ²(ω)
+        titulo     : título del gráfico
+        xlim       : tupla (min, max) para limitar el eje X (opcional)
+    """
+    fig, ax = plt.subplots(figsize=(10, 4))
+    ax.plot(freqs, coherencia, color='green')
+    ax.set_title(titulo)
+    ax.set_xlabel("Frecuencia [Hz]")
+    ax.set_ylabel(r"$\gamma^2_{xy}(\omega)$")
+    ax.set_ylim(-0.05, 1.05)
+    ax.grid(True)
+    if xlim is not None:
+        ax.set_xlim(xlim)
+    plt.tight_layout()
+    plt.show()
